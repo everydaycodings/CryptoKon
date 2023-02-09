@@ -13,7 +13,7 @@
 - Shows **Percentage Change** of like, share, comment, views, retweets, tweets engagement in **5 interval different intervals**.
 - Show a **detail information** of a perticular crypto project such as **market detail**, **Tokonomics**, **Score Board**, **Token ICO Details** and manymore.
 
-Check out the live demo: https://twitter--sentiment--analysiss.herokuapp.com
+Check out the live demo: https://cryptokon.streamlit.app
 
 ### Vedio demo:
 <p><img  alt="GIF" src="https://github.com/everydaycodings/Twitter-Sentimental-Analysis-WebApp/blob/master/files/app_demo.gif" width="800" height="450" /></p>

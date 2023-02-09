@@ -12,7 +12,7 @@
 - Calculating **Moving Averages**(7/14/30/60)days on the Engagement so that you can get better understanding of the trend.
 - Shows **Percentage Change** of like, share, comment, views, retweets, tweets engagement in **5 interval different intervals**.
 - Show a **detail information** of a perticular crypto project such as **market detail**, **Tokonomics**, **Score Board**, **Token ICO Details** and manymore.
-
+- Manymore Features you will not regrate trying it.
 Check out the live demo: https://cryptokon.streamlit.app
 
 ### Vedio demo:

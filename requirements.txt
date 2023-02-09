@@ -1,0 +1,6 @@
+pandas
+numpy
+plotly
+bs4
+filelock
+streamlit

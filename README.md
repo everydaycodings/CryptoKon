@@ -27,7 +27,7 @@
 4. You will be automatically redirected the your localhost in brower where you can see you WebApp in live.
 
 ## Points To Be Noted: 
-##### If you are targeting large amount of tweets (ex: 50000 Tweets) i recomand you to do this following steps:
+##### If you are targeting a large amount of tweets (ex: 50000 Tweets) I recommend you to do the following steps:
 - Open your terminal/command prompt from your project directory and run the file `data_collector.py` by executing the command `python data_collector.py`.
 - enter your query, from date you want to collect the tweets, to date you want ot collect the tweets till, and the tweets limit.
 - Let the Script to run
@@ -35,5 +35,8 @@
 - You can see the output folder you will get your all tweets infomation in csv files.
 - Open your terminal/command prompt from your project directory and run the file `app.py` by executing the command `streamlit run app.py`.
 - Upload the file to the web app and see magic.
+
+#### A Large number of tweets fetching can sometimes crash the app. So try running the app in your localhost, and use the `data_collector.py` method to have a smooth experience.
+
 
 ### If you Use this Code for Any Commercial Purpose. Please Don't Forget To mention or give shoutout to [everydaycodings](https://github.com/everydaycodings).

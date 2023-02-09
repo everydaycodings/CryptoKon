@@ -14,7 +14,7 @@
 - Show a **detail information** of a perticular crypto project such as **market detail**, **Tokonomics**, **Score Board**, **Token ICO Details** and manymore.
 - Manymore Features you will not regrate trying it.
 
-#### Check out the live demo: https://cryptokon.streamlit.app
+### Check out the live demo: https://cryptokon.streamlit.app
 
 ### Vedio demo:
 <p><img  alt="GIF" src="https://github.com/everydaycodings/Twitter-Sentimental-Analysis-WebApp/blob/master/files/app_demo.gif" width="800" height="450" /></p>

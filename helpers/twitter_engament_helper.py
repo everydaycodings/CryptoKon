@@ -59,7 +59,7 @@ def cleanTxt(text):
 
 
 @st.cache(allow_output_mutation=True)
-def fetch_data(query_string, since_date, till_date, tweet_limit):
+def fetch_data(query_string, since_date, till_date, tweet_limit, save_data):
     
     query = "({}) until:{} since:{} -filter:replies".format(query_string, till_date, since_date)
     tweets = []
@@ -89,6 +89,9 @@ def fetch_data(query_string, since_date, till_date, tweet_limit):
                 tweets.append([tweet.date, tweet.user.username, tweet.rawContent, tweet.url, tweet.likeCount, tweet.user.followersCount, tweet.retweetCount, tweet.user.verified, tweet.viewCount, len(tweet.mentionedUsers), tweet.quoteCount])
          
     df = pd.DataFrame(tweets, columns=['Date', 'User', 'Tweet', "url", "like_count", "followers_count", "retweet_count", "verified", "view_count", "mentionuser", "comments_count"])
+    
+    if save_data == True:
+        df.to_csv("output/{}-{}-{}.csv".format(query, since_date, till_date)) 
     
     return df
 

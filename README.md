@@ -1,4 +1,4 @@
-# CryptoKon (v1.0.0)
+# CryptoKon (v1.0.1)
 #### CryptoKon is a revolutionary web application that helps you stay ahead of the curve in the ever-changing world of cryptocurrency. With its advanced analysis tools, CryptoKon provides a deep understanding of the trends and movements within specific crypto projects, empowering you to make informed investment decisions. Say goodbye to sifting through endless data and hello to a streamlined, user-friendly platform that puts the power of crypto analysis at your fingertips
 
 ![Python](https://img.shields.io/badge/Python-3.9-blueviolet)

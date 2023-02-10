@@ -17,7 +17,7 @@ st.set_page_config(
      initial_sidebar_state="expanded",
      menu_items={
          'Get Help': 'https://github.com/everydaycodings',
-         'About': "### APP Version: v1.0.0\nCryptoKon is a revolutionary web application that helps you stay ahead of the curve in the ever-changing world of cryptocurrency. With its advanced analysis tools, CryptoKon provides a deep understanding of the trends and movements within specific crypto projects, empowering you to make informed investment decisions. Say goodbye to sifting through endless data and hello to a streamlined, user-friendly platform that puts the power of crypto analysis at your fingertips.\n #### Developer: [everydaycodings](https://github.com/everydaycodings)\n #### Connect with me: [https://linktr.ee/everydaycodings](https://linktr.ee/everydaycodings)"
+         'About': "### APP Version: v1.0.1\nCryptoKon is a revolutionary web application that helps you stay ahead of the curve in the ever-changing world of cryptocurrency. With its advanced analysis tools, CryptoKon provides a deep understanding of the trends and movements within specific crypto projects, empowering you to make informed investment decisions. Say goodbye to sifting through endless data and hello to a streamlined, user-friendly platform that puts the power of crypto analysis at your fingertips.\n #### Developer: [everydaycodings](https://github.com/everydaycodings)\n #### Connect with me: [https://linktr.ee/everydaycodings](https://linktr.ee/everydaycodings)"
      }
 )
 

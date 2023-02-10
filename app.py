@@ -41,7 +41,7 @@ with st.expander("Dont Know what to search? See this:"):
 since_date = st.date_input("Enter the date you want to collect date From: ")
 until_date = st.date_input("Enter the date you want to collect data To: ")
 number_of_tweets = st.slider("How many tweets You want to collect from {} Limit: 1K to 10M".format(twitter_query), min_value=1000, max_value=10000000, step=1, value=1000000)
-#save_data = st.selectbox("Do You want to save the Twitter data: ", options=[False, True])
+save_data = st.selectbox("Do You want to save the Twitter data: ", options=[False, True])
 crypto_choice = st.selectbox("Select your crypto", options=get_asset_list())
 st.text("If You have not got your crypto in the above list try Updating the List.")
 if st.button("Update The List"):
@@ -60,7 +60,7 @@ if st.button("Show Data"):
     if uploaded_file:
         data = pd.read_csv(uploaded_file, engine='python')
     else:
-        data = fetch_data(query_string=twitter_query, since_date=since_date, till_date=until_date, tweet_limit=number_of_tweets, save_data=False)
+        data = fetch_data(query_string=twitter_query, since_date=since_date, till_date=until_date, tweet_limit=number_of_tweets, save_data=save_data)
     data = preprocess_data(data)
     
     st.dataframe(data)

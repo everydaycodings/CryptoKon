@@ -6,6 +6,7 @@ import plotly.express as px
 import streamlit as st
 from pandas.tseries.offsets import DateOffset
 from datetime import datetime
+from helpers.twitter_ai_helper import add_sentiment_score_labels, get_sentiment_polarity
 
 emoji_pattern = re.compile("["
         u"\U0001F600-\U0001F64F"  # emoticons
@@ -58,8 +59,8 @@ def cleanTxt(text):
     return text
 
 
-@st.cache(allow_output_mutation=True)
-def fetch_data(query_string, since_date, till_date, tweet_limit, save_data):
+#@st.cache(allow_output_mutation=True)
+def fetch_data(query_string, since_date, till_date, tweet_limit, save_data, sentiment_analysis):
     
     query = "({}) until:{} since:{} -filter:replies".format(query_string, till_date, since_date)
     tweets = []
@@ -90,8 +91,12 @@ def fetch_data(query_string, since_date, till_date, tweet_limit, save_data):
          
     df = pd.DataFrame(tweets, columns=['Date', 'User', 'Tweet', "url", "like_count", "followers_count", "retweet_count", "verified", "view_count", "mentionuser", "comments_count"])
     
+    if sentiment_analysis == True:
+        df = add_sentiment_score_labels(data=df)
+        df = get_sentiment_polarity(data=df)
+
     if save_data == True:
-        df.to_csv("output/{}-{}-{}.csv".format(query, since_date, till_date)) 
+        df.to_csv("output/{}-{}-{}.csv".format(query, since_date, till_date))
     
     return df
 
@@ -101,7 +106,7 @@ def preprocess_data(data):
 
     data.dropna(inplace=True)
 
-    data_types_dict = {'like_count': int, "followers_count": int, "retweet_count": int}
+    data_types_dict = {'like_count': int, "followers_count": int, "retweet_count": int, "sentiment_score": float, "sentiment_confidence": float}
     data = data.astype(data_types_dict)
 
     data['Date'] = pd.to_datetime(data['Date'])

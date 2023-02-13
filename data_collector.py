@@ -1,5 +1,6 @@
 import snscrape.modules.twitter as sntwitter
 import pandas as pd
+from helpers.twitter_ai_helper import add_sentiment_score_labels, getPolarity, get_sentiment_polarity
 
 
 
@@ -9,6 +10,7 @@ def fetch_data():
     since  = input("Enter your date since you want to collect data(yy-mm-dd): ")
     until  = input("Enter your date until you want to collect data(yy-mm-dd): ")
     limit = input("Enter the limit of your tweets you want to collect: ")
+    sentiment = input("Do you want to analyze sentiment of the tweets?(y/n): ")
     query = "({}) until:{} since:{} -filter:replies".format(query, until, since)
     tweets = []
 
@@ -40,6 +42,19 @@ def fetch_data():
     df.to_csv('output/{}-{}-{}.csv'.format(query, since, until))
 
     print("Tweets Collection Completed")
+    print("tweets data has been saved.")
+
+    if sentiment == "y" or "Y" or "YES" or "yes":
+        print("Started Analyzing the sentiment")
+        df = add_sentiment_score_labels(df)
+        print("Sentiment Analization Completed")
+        df.to_csv('output/{}-{}-{}.csv'.format(query, since, until))
+        print("Data has been saved")
+        print("Started Analyzing the polarity")
+        df = get_sentiment_polarity(data=df)
+        df.to_csv('output/{}-{}-{}.csv'.format(query, since, until))
+        print("Polarity Analization Completed")
+        print("Data has been saved")
 
 
 

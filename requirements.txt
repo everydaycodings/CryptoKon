@@ -3,4 +3,6 @@ numpy
 plotly
 bs4
 filelock
-streamlit
+transformers
+torch
+textblob

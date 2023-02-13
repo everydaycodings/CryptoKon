@@ -5,6 +5,7 @@ from helpers.token_details_helper import token_statics, fetch_token_allocation, 
 from helpers.twitter_engament_helper import fetch_data, preprocess_data
 from helpers.twitter_engament_helper import default_twitter_engagement, like_view_count_engagement, popular_user_engagement, top_users, unique_user_engagement, engagement_percentage_change, counter_percentage_change
 from helpers.twitter_engament_helper import download_button, moving_average_engagement, moving_average_like_view_count
+from helpers.twitter_ai_helper import plot_sentiment_pie, plot_sentiment_confidence_line, plot_sentiment_score_line
 import plotly.express as px
 import pandas as pd
 
@@ -17,7 +18,7 @@ st.set_page_config(
      initial_sidebar_state="expanded",
      menu_items={
          'Get Help': 'https://github.com/everydaycodings',
-         'About': "### APP Version: v1.0.1\nCryptoKon is a revolutionary web application that helps you stay ahead of the curve in the ever-changing world of cryptocurrency. With its advanced analysis tools, CryptoKon provides a deep understanding of the trends and movements within specific crypto projects, empowering you to make informed investment decisions. Say goodbye to sifting through endless data and hello to a streamlined, user-friendly platform that puts the power of crypto analysis at your fingertips.\n #### Developer: [everydaycodings](https://github.com/everydaycodings)\n #### Connect with me: [https://linktr.ee/everydaycodings](https://linktr.ee/everydaycodings)"
+         'About': "### APP Version: v1.1.1\nCryptoKon is a revolutionary web application that helps you stay ahead of the curve in the ever-changing world of cryptocurrency. With its advanced analysis tools, CryptoKon provides a deep understanding of the trends and movements within specific crypto projects, empowering you to make informed investment decisions. Say goodbye to sifting through endless data and hello to a streamlined, user-friendly platform that puts the power of crypto analysis at your fingertips.\n #### Developer: [everydaycodings](https://github.com/everydaycodings)\n #### Connect with me: [https://linktr.ee/everydaycodings](https://linktr.ee/everydaycodings)"
      }
 )
 
@@ -42,6 +43,7 @@ since_date = st.date_input("Enter the date you want to collect date From: ")
 until_date = st.date_input("Enter the date you want to collect data To: ")
 number_of_tweets = st.slider("How many tweets You want to collect from {} Limit: 1K to 10M".format(twitter_query), min_value=1000, max_value=10000000, step=1, value=1000000)
 save_data = st.selectbox("Do You want to save the Twitter data: ", options=[False, True])
+sentiment_analysis = st.selectbox("Do You want to analyze the Twitter Sentiment: ", options=[False, True])
 crypto_choice = st.selectbox("Select your crypto", options=get_asset_list())
 st.text("If You have not got your crypto in the above list try Updating the List.")
 if st.button("Update The List"):
@@ -60,7 +62,7 @@ if st.button("Show Data"):
     if uploaded_file:
         data = pd.read_csv(uploaded_file, engine='python')
     else:
-        data = fetch_data(query_string=twitter_query, since_date=since_date, till_date=until_date, tweet_limit=number_of_tweets, save_data=save_data)
+        data = fetch_data(query_string=twitter_query, since_date=since_date, till_date=until_date, tweet_limit=number_of_tweets, save_data=save_data, sentiment_analysis=sentiment_analysis)
     data = preprocess_data(data)
     
     st.dataframe(data)
@@ -140,6 +142,20 @@ if st.button("Show Data"):
     with col2:
         st.subheader("Most Number of followers tweeted atleast Once")
         st.dataframe(most_followed_user)
+
+    
+
+    if sentiment_analysis == True:
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            plot_sentiment_confidence_line(data=data)
+        with col2:
+            plot_sentiment_pie(data=data)
+
+
+        plot_sentiment_score_line(data=data)
 
 
     st.subheader("Change of Trends in Percentage.")

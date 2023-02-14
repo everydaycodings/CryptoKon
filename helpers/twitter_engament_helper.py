@@ -106,8 +106,12 @@ def preprocess_data(data):
 
     data.dropna(inplace=True)
 
-    data_types_dict = {'like_count': int, "followers_count": int, "retweet_count": int, "sentiment_score": float, "sentiment_confidence": float}
-    data = data.astype(data_types_dict)
+    try:
+        data_types_dict = {'like_count': int, "followers_count": int, "retweet_count": int, "sentiment_score": float, "sentiment_confidence": float}
+        data = data.astype(data_types_dict)
+    except:
+        data_types_dict = {'like_count': int, "followers_count": int, "retweet_count": int}
+        data = data.astype(data_types_dict)
 
     data['Date'] = pd.to_datetime(data['Date'])
     data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')

@@ -8,7 +8,8 @@ from helpers.twitter_engament_helper import download_button, moving_average_enga
 from helpers.twitter_ai_helper import plot_sentiment_pie, plot_sentiment_confidence_line, plot_sentiment_score_line
 import plotly.express as px
 import pandas as pd
-
+import datetime
+from datetime import date, timedelta
 
 
 st.set_page_config(
@@ -23,23 +24,31 @@ st.set_page_config(
 )
 
 
+today = date.today()
+default_date_yesterday = today - timedelta(days=1)
+
+
+@st.cache_data
+def load_data():
+
+    return pd.read_csv("files/full_sample.csv", engine='python')
+
+
 st.title("Crypto Data Analysis")
 st.write("Sample of a CSV file")
 st.dataframe(pd.read_csv("files/sample.csv", engine='python').head())
-sample_data = pd.read_csv("files/full_sample.csv", engine='python')
-download_button(data=sample_data, since="sample", till="data", query="cryptokon", label="Download Sample Data")
-
+download_button(data=load_data(), since="sample", till="data", query="cryptokon", label="Download Sample Data")
 
 
 uploaded_file = st.file_uploader("If You an csv file already then upload it (Optional)",type="csv", help="You have to upload the csv file in the same format as it is seen above example.")
-twitter_query = st.text_input("Enter the text you want to search in Twitter")
+twitter_query = st.text_input("Enter the text you want to search in Twitter", "$ADA")
 with st.expander("Dont Know what to search? See this:"):
     st.markdown("```$ADA``` => To search all the Tweets which contains $ADA Word.")
     st.markdown("```#ADA``` => To search all the Tweets which contains #ADA Word.")
     st.markdown("```$ADA OR #ADA``` => To search all the Tweets which contains #ADA or #ADA Word.")
     st.markdown("```from:saksham``` => To search all the Tweets from the username saksham.")
     st.markdown("```#github (from:everydaycodings)``` => To search all the Tweets from the username saksham which contains word #github.")
-since_date = st.date_input("Enter the date you want to collect date From: ")
+since_date = st.date_input("Enter the date you want to collect date From: ", default_date_yesterday)
 until_date = st.date_input("Enter the date you want to collect data To: ")
 number_of_tweets = st.slider("How many tweets You want to collect from {} Limit: 1K to 10M".format(twitter_query), min_value=1000, max_value=10000000, step=1, value=1000000)
 save_data = st.selectbox("Do You want to save the Twitter data: ", options=[False, True])

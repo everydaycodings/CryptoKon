@@ -5,9 +5,17 @@ import streamlit as st
 from textblob import TextBlob
 
 
-roberta = "cardiffnlp/twitter-roberta-base-sentiment-latest"
-model = AutoModelForSequenceClassification.from_pretrained(roberta)
-tokenizer = AutoTokenizer.from_pretrained(roberta)
+@st.cache_data
+def twitter_model():
+    roberta = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+    model = AutoModelForSequenceClassification.from_pretrained(roberta)
+    tokenizer = AutoTokenizer.from_pretrained(roberta)
+
+    return model, tokenizer
+
+
+twitter_model, twitter_tokenizer = twitter_model()
+
 
 
 def getPolarity(text):
@@ -18,14 +26,14 @@ def getPolarity(text):
 
 def sentiment_score(tweet):
 
-    sentiment_task = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
+    sentiment_task = pipeline("sentiment-analysis", model=twitter_model, tokenizer=twitter_tokenizer)
     sentiment = sentiment_task(tweet)[0]
     return format('%.2f' %float(sentiment["score"]))
 
 
 def sentiment_label(tweet):
 
-    sentiment_task = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
+    sentiment_task = pipeline("sentiment-analysis", model=twitter_model, tokenizer=twitter_tokenizer)
     sentiment = sentiment_task(tweet)[0]
     return sentiment["label"]
 

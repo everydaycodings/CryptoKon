@@ -59,7 +59,7 @@ def text_added(asset):
 
 
 
-@st.cache(allow_output_mutation=True)
+
 def asset_signals(slug):
     
     data_list = []
@@ -173,7 +173,7 @@ def asset_signals(slug):
     return data_summary, data_list
 
 
-@st.cache(allow_output_mutation=True)
+
 def asset_overview(slug):
 
 
@@ -223,7 +223,7 @@ def asset_overview(slug):
     return data
 
 
-@st.cache(allow_output_mutation=True)
+
 def crypto_desc(slug):
 
     data_list = []
@@ -251,7 +251,7 @@ def crypto_desc(slug):
     return data_list
 
 
-@st.cache(allow_output_mutation=True)
+
 def asset_details_v2(asset_id):
 
     green_score = []
@@ -609,7 +609,7 @@ def asset_details_v2(asset_id):
     return data
 
 
-@st.cache(allow_output_mutation=True)
+
 def ico_details(asset_id):
 
     date_list = []
@@ -657,7 +657,7 @@ def ico_details(asset_id):
     return data
 
 
-@st.cache(allow_output_mutation=True)
+
 def token_statics(asset_id):
 
     text_data = []
@@ -706,7 +706,7 @@ def token_statics(asset_id):
 
 
 
-@st.cache(allow_output_mutation=True)
+
 def fetch_token_allocation(asset_id):
 
     data_list = []

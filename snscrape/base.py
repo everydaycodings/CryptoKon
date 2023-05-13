@@ -1,3 +1,6 @@
+__all__ = ['DeprecatedFeatureWarning', 'IntWithGranularity', 'Item', 'Scraper', 'ScraperException']
+
+
 import abc
 import copy
 import dataclasses
@@ -5,6 +8,7 @@ import datetime
 import functools
 import json
 import logging
+import random
 import requests
 import requests.adapters
 import urllib3.connection
@@ -12,7 +16,22 @@ import time
 import warnings
 
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
+
+
+def _module_deprecation_helper(all, **names):
+	def __getattr__(name):
+		if name in names:
+			warnings.warn(f'{name} is deprecated, use {names[name].__name__} instead', DeprecatedFeatureWarning, stacklevel = 2)
+			return names[name]
+		raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+	def __dir__():
+		return sorted(all + list(names.keys()))
+	return __getattr__, __dir__
+
+
+class DeprecatedFeatureWarning(FutureWarning):
+	pass
 
 
 class _DeprecatedProperty:
@@ -24,7 +43,7 @@ class _DeprecatedProperty:
 	def __get__(self, obj, objType):
 		if obj is None: # if the access is through the class using _DeprecatedProperty rather than an instance of the class:
 			return self
-		warnings.warn(f'{self.name} is deprecated, use {self.replStr} instead', FutureWarning, stacklevel = 2)
+		warnings.warn(f'{self.name} is deprecated, use {self.replStr} instead', DeprecatedFeatureWarning, stacklevel = 2)
 		return self.repl(obj)
 
 
@@ -45,9 +64,9 @@ def _json_dataclass_to_dict(obj):
 			if field.name.startswith('_'):
 				continue
 			out[field.name] = _json_dataclass_to_dict(getattr(obj, field.name))
-		# Add in (non-deprecated) properties
+		# Add properties
 		for k in dir(obj):
-			if isinstance(getattr(type(obj), k, None), property):
+			if isinstance(getattr(type(obj), k, None), (property, _DeprecatedProperty)):
 				assert k != '_type'
 				if k.startswith('_'):
 					continue
@@ -70,7 +89,9 @@ class _JSONDataclass:
 	def json(self):
 		'''Convert the object to a JSON string'''
 
-		out = _json_dataclass_to_dict(self)
+		with warnings.catch_warnings():
+			warnings.filterwarnings(action = 'ignore', category = DeprecatedFeatureWarning)
+			out = _json_dataclass_to_dict(self)
 		for key, value in list(out.items()): # Modifying the dict below, so make a copy first
 			if isinstance(value, IntWithGranularity):
 				out[key] = int(value)
@@ -81,21 +102,9 @@ class _JSONDataclass:
 
 @dataclasses.dataclass
 class Item(_JSONDataclass):
-	'''An abstract base class for an item returned by the scraper's get_items generator.
+	'''An abstract base class for an item returned by the scraper.
 
 	An item can really be anything. The string representation should be useful for the CLI output (e.g. a direct URL for the item).
-	'''
-
-	@abc.abstractmethod
-	def __str__(self):
-		pass
-
-
-@dataclasses.dataclass
-class Entity(_JSONDataclass):
-	'''An abstract base class for an entity returned by the scraper's entity property.
-
-	An entity is typically the account of a person or organisation. The string representation should be the preferred direct URL to the entity's page on the network.
 	'''
 
 	@abc.abstractmethod
@@ -118,18 +127,14 @@ class IntWithGranularity(int):
 		return (IntWithGranularity, (int(self), self.granularity))
 
 
-class URLItem(Item):
-	'''A generic item which only holds a URL string.'''
-
-	def __init__(self, url):
-		self._url = url
-
-	@property
-	def url(self):
-		return self._url
-
-	def __str__(self):
-		return self._url
+def _random_user_agent():
+	def lerp(a1, b1, a2, b2, n):
+		return (n - a1) / (b1 - a1) * (b2 - a2) + a2
+	version = int(lerp(datetime.date(2023, 3, 7).toordinal(), datetime.date(2030, 9, 24).toordinal(), 111, 200, datetime.date.today().toordinal()))
+	version += random.randint(-5, 1)
+	version = max(version, 101)
+	return f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{version}.0.0.0 Safari/537.36'
+_DEFAULT_USER_AGENT = _random_user_agent()
 
 
 class _HTTPSAdapter(requests.adapters.HTTPAdapter):
@@ -139,7 +144,7 @@ class _HTTPSAdapter(requests.adapters.HTTPAdapter):
 		try:
 			self.poolmanager.pool_classes_by_scheme['https'].ConnectionCls = _HTTPSConnection
 		except (AttributeError, KeyError) as e:
-			logger.debug(f'Could not install TLS cipher logger: {type(e).__module__}.{type(e).__name__} {e!s}')
+			_logger.debug(f'Could not install TLS cipher logger: {type(e).__module__}.{type(e).__name__} {e!s}')
 
 
 class _HTTPSConnection(urllib3.connection.HTTPSConnection):
@@ -147,12 +152,12 @@ class _HTTPSConnection(urllib3.connection.HTTPSConnection):
 		conn = super().connect(*args, **kwargs)
 		#FIXME: Uses undocumented attribute self.sock and beyond.
 		try:
-			logger.debug(f'Connected to: {self.sock.getpeername()}')
+			_logger.debug(f'Connected to: {self.sock.getpeername()}')
 		except AttributeError:
 			# self.sock might be a urllib3.util.ssltransport.SSLTransport, which lacks getpeername.
 			pass
 		try:
-			logger.debug(f'Connection cipher: {self.sock.cipher()}')
+			_logger.debug(f'Connection cipher: {self.sock.cipher()}')
 		except AttributeError:
 			# Shouldn't be possible, but better safe than sorry.
 			pass
@@ -193,18 +198,22 @@ class Scraper:
 		return self._get_entity()
 
 	def _request(self, method, url, params = None, data = None, headers = None, timeout = 10, responseOkCallback = None, allowRedirects = True, proxies = None):
+		if not headers:
+			headers = {}
+		if 'User-Agent' not in headers:
+			headers['User-Agent'] = _DEFAULT_USER_AGENT
 		proxies = proxies or self._proxies or {}
 		errors = []
 		for attempt in range(self._retries + 1):
 			# The request is newly prepared on each retry because of potential cookie updates.
 			req = self._session.prepare_request(requests.Request(method, url, params = params, data = data, headers = headers))
 			environmentSettings = self._session.merge_environment_settings(req.url, proxies, None, None, None)
-			logger.info(f'Retrieving {req.url}')
-			logger.debug(f'... with headers: {headers!r}')
+			_logger.info(f'Retrieving {req.url}')
+			_logger.debug(f'... with headers: {headers!r}')
 			if data:
-				logger.debug(f'... with data: {data!r}')
+				_logger.debug(f'... with data: {data!r}')
 			if environmentSettings:
-				logger.debug(f'... with environmentSettings: {environmentSettings!r}')
+				_logger.debug(f'... with environmentSettings: {environmentSettings!r}')
 			try:
 				r = self._session.send(req, allow_redirects = allowRedirects, timeout = timeout, **environmentSettings)
 			except requests.exceptions.RequestException as exc:
@@ -214,16 +223,16 @@ class Scraper:
 				else:
 					retrying = ''
 					level = logging.ERROR
-				logger.log(level, f'Error retrieving {req.url}: {exc!r}{retrying}')
+				_logger.log(level, f'Error retrieving {req.url}: {exc!r}{retrying}')
 				errors.append(repr(exc))
 			else:
 				redirected = f' (redirected to {r.url})' if r.history else ''
-				logger.info(f'Retrieved {req.url}{redirected}: {r.status_code}')
-				logger.debug(f'... with response headers: {r.headers!r}')
+				_logger.info(f'Retrieved {req.url}{redirected}: {r.status_code}')
+				_logger.debug(f'... with response headers: {r.headers!r}')
 				if r.history:
 					for i, redirect in enumerate(r.history):
-						logger.debug(f'... request {i}: {redirect.request.url}: {redirect.status_code} (Location: {redirect.headers.get("Location")})')
-						logger.debug(f'... ... with response headers: {redirect.headers!r}')
+						_logger.debug(f'... request {i}: {redirect.request.url}: {redirect.status_code} (Location: {redirect.headers.get("Location")})')
+						_logger.debug(f'... ... with response headers: {redirect.headers!r}')
 				if responseOkCallback is not None:
 					success, msg = responseOkCallback(r)
 					errors.append(msg)
@@ -232,7 +241,7 @@ class Scraper:
 				msg = f': {msg}' if msg else ''
 
 				if success:
-					logger.debug(f'{req.url} retrieved successfully{msg}')
+					_logger.debug(f'{req.url} retrieved successfully{msg}')
 					return r
 				else:
 					if attempt < self._retries:
@@ -241,15 +250,15 @@ class Scraper:
 					else:
 						retrying = ''
 						level = logging.ERROR
-					logger.log(level, f'Error retrieving {req.url}{msg}{retrying}')
+					_logger.log(level, f'Error retrieving {req.url}{msg}{retrying}')
 			if attempt < self._retries:
 				sleepTime = 1.0 * 2**attempt # exponential backoff: sleep 1 second after first attempt, 2 after second, 4 after third, etc.
-				logger.info(f'Waiting {sleepTime:.0f} seconds')
+				_logger.info(f'Waiting {sleepTime:.0f} seconds')
 				time.sleep(sleepTime)
 		else:
 			msg = f'{self._retries + 1} requests to {req.url} failed, giving up.'
-			logger.fatal(msg)
-			logger.fatal(f'Errors: {", ".join(errors)}')
+			_logger.fatal(msg)
+			_logger.fatal(f'Errors: {", ".join(errors)}')
 			raise ScraperException(msg)
 		raise RuntimeError('Reached unreachable code')
 
@@ -280,3 +289,6 @@ def nonempty_string(name):
 		raise ValueError('must not be an empty string')
 	f.__name__ = name
 	return f
+
+
+__getattr__, __dir__ = _module_deprecation_helper(__all__, Entity = Item)
